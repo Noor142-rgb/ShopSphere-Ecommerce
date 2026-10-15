@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSphere | Online Shopping</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a href="#home" class="brand">
+            <span class="brand-mark">S</span> ShopSphere
+        </a>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#products">Products</a>
+            <a href="#orders">Orders</a>
+            <a href="#manage">Manage Store</a>
+        </nav>
+        <button id="cartToggle" class="cart-pill" type="button">
+            Cart <span id="cartCount">0</span>
+        </button>
+    </header>
+    <main>
+        <section id="home" class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">YOUR EVERYDAY SHOPPING DESTINATION</p>
+                <h1>Find your next <span>favourite.</span></h1>
+                <p class="hero-text">
+                    Discover products you love, shop with ease,
+                    and track your orders in one place.
+                </p>
+                <a href="#products" class="primary-link">Explore products →</a>
+            </div>
+            <div class="hero-art">
+                <div class="sun"></div>
+                <div class="bag bag-one"></div>
+                <div class="bag bag-two"></div>
+                <span class="art-label">Everyday essentials</span>
+            </div>
+        </section>
+        <div class="status-row">
+            <span><i id="statusDot" class="status-dot"></i><span id="dbStatus">Connecting to Neo4j...</span></span>
+            <button id="refreshBtn" class="text-button" type="button">Refresh products ↻</button>
+        </div>
+        <p id="message" class="message hidden" role="status"></p>
+        <section id="products">
+            <div class="section-head">
+                <div>
+                    <p class="eyebrow">THE COLLECTION</p>
+                    <h2>Explore products</h2>
+                </div>
+                <div class="filters">
+                    <input id="searchInput" type="search" placeholder="Search products...">
+                    <select id="categorySelect">
+                        <option value="">All categories</option>
+                    </select>
+                </div>
+            </div>
+            <div id="productGrid" class="product-grid">
+                <div class="loading">Loading products...</div>
+            </div>
+        </section>
+        <section id="orders" class="orders-section">
+            <div class="section-head compact">
+                <div>
+                    <p class="eyebrow">YOUR PURCHASES</p>
+                    <h2>Recent orders</h2>
+                </div>
+                <button id="refreshOrders" class="text-button" type="button">Refresh orders ↻</button>
+            </div>
+            <div id="ordersList" class="orders-list"></div>
+        </section>
+        <section id="manage" class="manage-section">
+            <div class="section-head compact">
+                <div>
+                    <p class="eyebrow">STORE MANAGEMENT</p>
+                    <h2>Manage products</h2>
+                </div>
+                <button id="newProductBtn" class="checkout-button" type="button">+ Add product</button>
+            </div>
+            <form id="productForm" class="manage-form hidden">
+                <h3 id="productFormTitle">Add a product</h3>
+                <input id="editProductId" type="hidden">
+                <div class="form-grid">
+                    <label>Product name
+                        <input id="productName" required>
+                    </label>
+                    <label>Category
+                        <input id="productCategory" required>
+                    </label>
+                    <label>Seller name
+                        <input id="productSeller" required>
+                    </label>
+                    <label>Price (₹)
+                        <input id="productPrice" type="number" min="0" step="0.01" required>
+                    </label>
+                    <label>Stock
+                        <input id="productStock" type="number" min="0" step="1" value="1" required>
+                    </label>
+                    <label>Image URL
+                        <input id="productImageUrl" type="url" placeholder="https://example.com/image.jpg">
+                    </label>
+                </div>
+                <label>Description
+                    <textarea id="productDescription" rows="3"></textarea>
+                </label>
+                <div class="form-actions">
+                    <button id="saveProductBtn" class="checkout-button" type="submit">Save product</button>
+                    <button id="cancelProductBtn" class="outline-button" type="button">Cancel</button>
+                </div>
+            </form>
+            <div id="manageProductList" class="manage-list"></div>
+            <div class="section-head compact" style="margin-top:35px">
+                <h2>Customer management</h2>
+                <button id="refreshCustomers" class="text-button" type="button">Refresh customers ↻</button>
+            </div>
+            <div id="customerList" class="manage-list"></div>
+        </section>
+    </main>
+    <aside id="cartPanel" class="cart-panel">
+        <div class="cart-header">
+            <h2>Your cart</h2>
+            <button id="closeCart" class="close-button" type="button" aria-label="Close cart">×</button>
+        </div>
+        <div id="cartItems" class="cart-items"></div>
+        <div class="cart-footer">
+            <div class="total-line">
+                <strong>Total</strong>
+                <strong id="cartTotal">₹0.00</strong>
+            </div>
+            <div class="checkout-mode">
+                <label><input type="radio" name="customerMode" value="new" checked> New customer</label>
+                <label><input type="radio" name="customerMode" value="existing"> Existing customer</label>
+            </div>
+            <div id="newCustomerFields" class="customer-fields">
+                <label for="checkoutName">Full name</label>
+                <input id="checkoutName" autocomplete="name" placeholder="Your name">
+                <label for="checkoutEmail">Email address</label>
+                <input id="checkoutEmail" type="email" autocomplete="email" placeholder="you@example.com">
+                <label for="checkoutAddress">Delivery address</label>
+                <textarea id="checkoutAddress" rows="3" autocomplete="street-address" placeholder="Your delivery address"></textarea>
+            </div>
+            <div id="existingCustomerFields" class="customer-fields hidden">
+                <label for="customerSelect">Select customer</label>
+                <select id="customerSelect">
+                    <option value="">Choose a customer</option>
+                </select>
+            </div>
+            <button id="checkoutBtn" class="checkout-button" type="button" disabled>Place order</button>
+            <p class="fine-print">Your order will be saved to the ShopSphere Neo4j database.</p>
+        </div>
+    </aside>
+    <div id="backdrop" class="backdrop"></div>
+    <footer>
+        <strong>ShopSphere</strong>
+        <span>Thoughtful shopping, all in one place.</span>
+        <span>© 2026 ShopSphere</span>
+    </footer>
+</body>
+</html>

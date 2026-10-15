@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopSphere | E-Commerce</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fb; color: #222; }
+    header { background: #202b46; color: white; padding: 18px 5%; }
+    .header-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .brand { font-size: 26px; font-weight: bold; }
+    nav { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+    button { border: none; border-radius: 7px; padding: 10px 15px; cursor: pointer; font-weight: bold; }
+    nav button { background: #354361; color: white; }
+    nav button:hover { background: #50658e; }
+    .primary { background: #4f46e5; color: white; }
+    .danger { background: #dc3545; color: white; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    main { max-width: 1200px; margin: 25px auto; padding: 0 18px; }
+    section { margin-bottom: 30px; }
+    .panel { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 3px 12px #0000000c; margin-bottom: 20px; }
+    .hidden { display: none !important; }
+    .auth-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 20px; }
+    input, select, textarea { width: 100%; padding: 11px; margin: 7px 0 13px; border: 1px solid #d4d9e2; border-radius: 7px; font: inherit; }
+    textarea { min-height: 75px; resize: vertical; }
+    label { font-size: 14px; font-weight: bold; }
+    .hero { padding: 35px; border-radius: 14px; background: linear-gradient(120deg,#e0e7ff,#f5e8ff); margin-bottom: 25px; }
+    .hero h1 { margin-top: 0; font-size: 32px; }
+    .muted { color: #687386; font-size: 14px; }
+    .status { padding: 10px; border-radius: 7px; margin: 10px 0; background: #eef2ff; color: #3730a3; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 18px; }
+    .product-card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 3px 12px #0000000c; }
+    .product-icon { font-size: 52px; text-align: center; padding: 18px; background: #f0f3fa; border-radius: 9px; }
+    .product-card h3 { margin-bottom: 6px; }
+    .price { color: #4338ca; font-size: 20px; font-weight: bold; }
+    .product-card button { margin: 4px 3px 0 0; }
+    .item-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 13px 0; border-bottom: 1px solid #e7eaf0; }
+    .item-row:last-child { border-bottom: none; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+    .form-grid > div { min-width: 0; }
+    .cart-quantity { display: flex; align-items: center; gap: 8px; }
+    .cart-quantity button { padding: 6px 10px; }
+    .section-heading { margin-top: 0; }
+    footer { text-align: center; padding: 25px; color: #687386; }
+    @media (max-width: 600px) {
+      .brand { font-size: 22px; }
+      .hero { padding: 22px; }
+      .hero h1 { font-size: 26px; }
+      main { padding: 0 12px; }
+      .panel { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">🛍️ ShopSphere</div>
+      <div id="accountStatus">Browsing as guest</div>
+    </div>
+    <nav>
+      <button type="button" id="homeNav">Home</button>
+      <button type="button" id="productsNav">Products</button>
+      <button type="button" id="cartNav">My Cart (<span id="cartCount">0</span>)</button>
+      <button type="button" id="ordersNav" class="hidden">My Orders</button>
+      <button type="button" id="manageNav" class="hidden">Manage Store</button>
+      <button type="button" id="loginNav">Login / Sign Up</button>
+      <button type="button" id="logoutBtn" class="hidden">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="globalMessage" class="status hidden" role="status"></div>
+
+    <section id="homeSection">
+      <div class="hero">
+        <h1>Welcome to ShopSphere!</h1>
+        <p>Discover products you love, add them to your cart, and shop with ease.</p>
+        <button type="button" class="primary" id="shopNowBtn">Explore Products</button>
+      </div>
+      <div class="panel">
+        <h2>Shop with confidence</h2>
+        <p>Browse products, create your customer account, and track your orders in one place.</p>
+        <p class="muted">Sign in to place orders and view your order history.</p>
+      </div>
+    </section>
+
+    <section id="authSection" class="hidden">
+      <h1 class="section-heading">Account Access</h1>
+      <p class="muted">Sign in to shop, or create a new customer account.</p>
+      <div class="auth-grid">
+        <div class="panel">
+          <h2>Customer Login</h2>
+          <form id="customerLoginForm">
+            <label for="loginEmail">Email address</label>
+            <input id="loginEmail" name="email" type="email" required autocomplete="email">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" name="password" type="password" required autocomplete="current-password">
+            <button type="submit" class="primary">Login</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h2>Create Customer Account</h2>
+          <form id="customerSignupForm">
+            <label for="signupName">Full name</label>
+            <input id="signupName" name="name" type="text" required autocomplete="name">
+            <label for="signupEmail">Email address</label>
+            <input id="signupEmail" name="email" type="email" required autocomplete="email">
+            <label for="signupAddress">Address</label>
+            <textarea id="signupAddress" name="address" required autocomplete="street-address"></textarea>
+            <label for="signupPassword">Password</label>
+            <input id="signupPassword" name="password" type="password" minlength="8" required autocomplete="new-password">
+            <button type="submit" class="primary">Create Account</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h2>Administrator Login</h2>
+          <p class="muted">For authorized store administrators only.</p>
+          <form id="adminLoginForm">
+            <label for="adminUsername">Username</label>
+            <input id="adminUsername" name="username" type="text" required autocomplete="username">
+            <label for="adminPassword">Password</label>
+            <input id="adminPassword" name="password" type="password" required autocomplete="current-password">
+            <button type="submit" class="primary">Admin Login</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="productsSection">
+      <h1 class="section-heading">Our Products</h1>
+      <div class="panel">
+        <div class="form-grid">
+          <div>
+            <label for="searchInput">Search products</label>
+            <input id="searchInput" type="search" placeholder="Search by product name...">
+          </div>
+          <div>
+            <label for="categoryFilter">Filter by category</label>
+            <select id="categoryFilter">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="productMessage" class="status hidden" role="status"></div>
+      <div id="productList" class="product-grid"></div>
+    </section>
+
+    <section id="cartSection" class="hidden">
+      <h1 class="section-heading">My Shopping Cart</h1>
+      <div class="panel">
+        <div id="cartList"><p>Your cart is empty.</p></div>
+        <div class="item-row">
+          <strong>Total: ₹<span id="cartTotal">0.00</span></strong>
+          <button type="button" class="primary" id="checkoutBtn" disabled>Place Order</button>
+        </div>
+        <div id="checkoutAccountNotice" class="status">
+          Please log in or create a customer account before placing an order.
+        </div>
+        <p class="muted">Your order will be associated with your signed-in customer account.</p>
+      </div>
+    </section>
+
+    <section id="ordersSection" class="hidden">
+      <h1 class="section-heading" id="ordersHeading">My Orders</h1>
+      <div class="panel">
+        <div id="ordersList"><p>Your orders will appear here.</p></div>
+      </div>
+    </section>
+
+    <section id="manageSection" class="hidden">
+      <h1 class="section-heading">Store Management</h1>
+      <p class="muted">Administrator area. Only authorized administrators should access these controls.</p>
+
+      <div class="panel">
+        <h2 id="productFormHeading">Add Product</h2>
+        <form id="productForm">
+          <input type="hidden" id="productId">
+          <div class="form-grid">
+            <div>
+              <label for="productName">Product name</label>
+              <input id="productName" required>
+            </div>
+            <div>
+              <label for="productPrice">Price (₹)</label>
+              <input id="productPrice" type="number" min="0.01" step="0.01" required>
+            </div>
+            <div>
+              <label for="productStock">Stock quantity</label>
+              <input id="productStock" type="number" min="0" step="1" required>
+            </div>
+            <div>
+              <label for="productCategory">Category</label>
+              <select id="productCategory" required>
+                <option value="">Select category</option>
+              </select>
+            </div>
+            <div>
+              <label for="productSeller">Seller ID</label>
+             <select id="productSeller" required>
+  <option value="">Select a seller</option>
+</select>            </div>
+          </div>
+          <label for="productDescription">Description</label>
+          <textarea id="productDescription"></textarea>
+          <button type="submit" class="primary" id="saveProductBtn">Save Product</button>
+          <button type="button" id="cancelEditBtn" class="hidden">Cancel Edit</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Manage Products</h2>
+        <div id="manageProductList"><p>Product management data will appear here after administrator login.</p></div>
+      </div>
+
+      <div class="panel">
+        <h2>Customer Management</h2>
+        <div id="customerList"><p>Customer records will appear here after administrator login.</p></div>
+      </div>
+
+      <div class="panel">
+        <h2>All Customer Orders</h2>
+        <div id="adminOrdersList"><p>Order records will appear here after administrator login.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>ShopSphere E-Commerce Platform</p>
+    <p class="muted">Product browsing, shopping cart, customer accounts and order management.</p>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

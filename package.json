@@ -1,0 +1,22 @@
+{
+  "name": "ecommerce-neo4j-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "College e-commerce web application connected to an existing Neo4j AuraDB graph",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "connect-redis": "^10.0.0",
+    "cookie-session": "^2.1.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.1",
+    "express-session": "^1.19.0",
+    "neo4j-driver": "^5.28.1",
+    "redis": "^6.3.0"
+  }
+}
