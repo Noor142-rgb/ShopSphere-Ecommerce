@@ -1453,40 +1453,106 @@ function initParachuteScroll() {
 
 /* ---------------- SHOPSPHERE LANDING WINK SOUND & ANIMATION ---------------- */
 
-const LOADING_DURATION = 5000;
+const LOADING_DURATION = 5500;
 const WINK_AT = 3000;
 
-function playWinkSound() {
+let winkAudioBuffer = null;
+let winkAudioContext = null;
+let hasPlayedWinkSound = false;
+
+async function prepareWinkAudio() {
   try {
-    const audio = new Audio("freesound_community-cartoon_wink_magic_sparkle-6896.mp3");
-    audio.volume = 1.0;
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((err) => {
-        console.warn("Audio autoplay blocked by browser:", err);
-      });
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      winkAudioContext = new AudioCtx();
+    }
+    const resp = await fetch("freesound_community-cartoon_wink_magic_sparkle-6896.mp3");
+    if (resp.ok && winkAudioContext) {
+      const arr = await resp.arrayBuffer();
+      winkAudioBuffer = await winkAudioContext.decodeAudioData(arr);
     }
   } catch (err) {
-    console.warn("Failed to play wink sound:", err);
+    console.warn("Pre-loading audio buffer:", err);
   }
+}
+
+function unlockAudioOnGesture() {
+  if (winkAudioContext && winkAudioContext.state === "suspended") {
+    winkAudioContext.resume().catch(() => {});
+  }
+  const el = $("winkAudioElement");
+  if (el) {
+    el.load();
+  }
+}
+
+["pointerdown", "touchstart", "click", "keydown"].forEach((evt) => {
+  window.addEventListener(evt, unlockAudioOnGesture, { passive: true });
+});
+
+function playWinkSound() {
+  if (hasPlayedWinkSound) return;
+  hasPlayedWinkSound = true;
+
+  // 1. Try Web Audio API with pre-decoded buffer (Highest reliability)
+  if (winkAudioContext && winkAudioBuffer) {
+    try {
+      if (winkAudioContext.state === "suspended") {
+        winkAudioContext.resume();
+      }
+      const source = winkAudioContext.createBufferSource();
+      const gainNode = winkAudioContext.createGain();
+      gainNode.gain.setValueAtTime(1.0, winkAudioContext.currentTime);
+      source.buffer = winkAudioBuffer;
+      source.connect(gainNode);
+      gainNode.connect(winkAudioContext.destination);
+      source.start(0);
+      return;
+    } catch (e) {
+      console.warn("Buffer playback fallback:", e);
+    }
+  }
+
+  // 2. Try HTML5 Audio Element in DOM
+  const el = $("winkAudioElement");
+  if (el) {
+    el.currentTime = 0;
+    el.volume = 1.0;
+    const p = el.play();
+    if (p !== undefined) {
+      p.catch(() => {
+        try {
+          const a = new Audio("freesound_community-cartoon_wink_magic_sparkle-6896.mp3");
+          a.volume = 1.0;
+          a.play().catch(() => {});
+        } catch (_) {}
+      });
+      return;
+    }
+  }
+
+  // 3. Try direct new Audio
+  try {
+    const a = new Audio("freesound_community-cartoon_wink_magic_sparkle-6896.mp3");
+    a.volume = 1.0;
+    a.play().catch(() => {});
+  } catch (_) {}
 }
 
 function initLoadingScreen() {
   const loadingEl = $("loadingScreen");
   if (!loadingEl) return;
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let hasPlayedSound = false;
+  prepareWinkAudio();
 
-  const triggerSound = () => {
-    if (!hasPlayedSound && !reduceMotion) {
-      hasPlayedSound = true;
-      playWinkSound();
-    }
-  };
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Wink sound triggers strictly at 3 seconds (when the eye winks)
-  const soundTimer = setTimeout(triggerSound, WINK_AT);
+  const soundTimer = setTimeout(() => {
+    if (!reduceMotion) {
+      playWinkSound();
+    }
+  }, WINK_AT);
 
   const completeLanding = () => {
     clearTimeout(soundTimer);
@@ -1501,11 +1567,9 @@ function initLoadingScreen() {
 
   const exitTimer = setTimeout(completeLanding, LOADING_DURATION);
 
-  // Clicking allows entering early, but does NOT play sound
-  loadingEl.addEventListener("click", () => {
-    clearTimeout(exitTimer);
-    clearTimeout(soundTimer);
-    completeLanding();
+  // Touching or clicking landing screen unlocks audio, does NOT cancel the wink
+  loadingEl.addEventListener("pointerdown", () => {
+    unlockAudioOnGesture();
   });
 
   const skipBtn = $("skipLandingBtn");
