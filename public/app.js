@@ -248,6 +248,9 @@ function navigate(id) {
   $("mobileMenuToggle")?.setAttribute("aria-expanded", "false");
 
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (typeof window.updateParachutePosition === "function") {
+    window.updateParachutePosition(0);
+  }
 }
 
 function updateInterface() {
@@ -1124,7 +1127,7 @@ async function checkout() {
       : `Order #${result.orderId || ""} placed successfully!`;
 
     showMessage(successMsg);
-    await loadOrders();
+    await Promise.all([loadOrders(), loadProducts()]);
     navigate("ordersSection");
   } catch (error) {
     showMessage(error.message, true);
@@ -1388,11 +1391,198 @@ function wireEvents() {
   setupHeaderInteractivity();
 }
 
+/* ---------------- CATALOG PARACHUTE SCROLL ANIMATION ---------------- */
+
+function initParachuteScroll() {
+  const wrapper = $("parachuteWrapper");
+  if (!wrapper) return;
+
+  let ticking = false;
+
+  function updatePosition() {
+    const section = $("productsSection");
+    if (!section || section.classList.contains("hidden")) return;
+
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+
+    // Vertical: moves smoothly from top (0px) to bottom
+    const sectionHeight = section.scrollHeight || section.offsetHeight;
+    const wrapperHeight = wrapper.offsetHeight || 220;
+    const maxMoveY = Math.max(0, sectionHeight - wrapperHeight - 40);
+    const moveY = progress * maxMoveY;
+
+    // Horizontal: moves smoothly from left (0px) to right across the page
+    const trackWidth = section.clientWidth || window.innerWidth;
+    const wrapperWidth = wrapper.offsetWidth || 180;
+    const maxMoveX = Math.max(0, trackWidth - wrapperWidth - 60);
+    const moveX = progress * maxMoveX;
+
+    wrapper.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+    ticking = false;
+  }
+
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      window.requestAnimationFrame(updatePosition);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  window.updateParachutePosition = (y = 0) => {
+    const section = $("productsSection");
+    if (!section) return;
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = Math.min(1, Math.max(0, y / maxScroll));
+    const sectionHeight = section.scrollHeight || section.offsetHeight;
+    const wrapperHeight = wrapper.offsetHeight || 220;
+    const maxMoveY = Math.max(0, sectionHeight - wrapperHeight - 40);
+    const moveY = progress * maxMoveY;
+
+    const trackWidth = section.clientWidth || window.innerWidth;
+    const wrapperWidth = wrapper.offsetWidth || 180;
+    const maxMoveX = Math.max(0, trackWidth - wrapperWidth - 60);
+    const moveX = progress * maxMoveX;
+
+    wrapper.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+  };
+
+  updatePosition();
+}
+
+/* ---------------- SHOPSPHERE LANDING WINK SOUND & ANIMATION ---------------- */
+
+const LOADING_DURATION = 4600;
+const WINK_AT = 1810;
+
+function playWinkSound() {
+  const AudioContextClass =
+    window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  try {
+    const context = new AudioContextClass();
+    if (context.state === 'suspended') {
+      context.resume();
+    }
+    const firstTone = context.createOscillator();
+    const secondTone = context.createOscillator();
+    const sparkleTone = context.createOscillator();
+
+    const firstGain = context.createGain();
+    const secondGain = context.createGain();
+    const sparkleGain = context.createGain();
+    const masterGain = context.createGain();
+    const now = context.currentTime;
+
+    // Loud, clear, non-clipping master volume
+    masterGain.gain.setValueAtTime(0.95, now);
+
+    // Warm ascending base chime (Loud & rich)
+    firstTone.type = 'sine';
+    firstTone.frequency.setValueAtTime(740, now);
+    firstTone.frequency.exponentialRampToValueAtTime(1200, now + 0.095);
+    firstGain.gain.setValueAtTime(0.0001, now);
+    firstGain.gain.exponentialRampToValueAtTime(0.75, now + 0.012);
+    firstGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+    // Bright ascending sparkle tone
+    secondTone.type = 'sine';
+    secondTone.frequency.setValueAtTime(1280, now + 0.045);
+    secondTone.frequency.exponentialRampToValueAtTime(1960, now + 0.18);
+    secondGain.gain.setValueAtTime(0.0001, now);
+    secondGain.gain.setValueAtTime(0.0001, now + 0.045);
+    secondGain.gain.exponentialRampToValueAtTime(0.70, now + 0.075);
+    secondGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+    // High crystalline twinkle harmonic (Disney/Apple chime quality)
+    sparkleTone.type = 'triangle';
+    sparkleTone.frequency.setValueAtTime(2240, now + 0.07);
+    sparkleTone.frequency.exponentialRampToValueAtTime(3200, now + 0.22);
+    sparkleGain.gain.setValueAtTime(0.0001, now);
+    sparkleGain.gain.setValueAtTime(0.0001, now + 0.07);
+    sparkleGain.gain.exponentialRampToValueAtTime(0.48, now + 0.10);
+    sparkleGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+    firstTone.connect(firstGain);
+    secondTone.connect(secondGain);
+    sparkleTone.connect(sparkleGain);
+
+    firstGain.connect(masterGain);
+    secondGain.connect(masterGain);
+    sparkleGain.connect(masterGain);
+    masterGain.connect(context.destination);
+
+    firstTone.start(now);
+    secondTone.start(now + 0.045);
+    sparkleTone.start(now + 0.07);
+
+    firstTone.stop(now + 0.17);
+    secondTone.stop(now + 0.29);
+    sparkleTone.stop(now + 0.33);
+
+    sparkleTone.addEventListener('ended', () => {
+      try { context.close(); } catch (e) {}
+    }, { once: true });
+  } catch (err) {
+    console.warn("Audio playback not permitted:", err);
+  }
+}
+
+function initLoadingScreen() {
+  const loadingEl = $("loadingScreen");
+  if (!loadingEl) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let hasPlayedSound = false;
+
+  const triggerSound = () => {
+    if (!hasPlayedSound && !reduceMotion) {
+      hasPlayedSound = true;
+      playWinkSound();
+    }
+  };
+
+  const soundTimer = setTimeout(triggerSound, WINK_AT);
+
+  const completeLanding = () => {
+    clearTimeout(soundTimer);
+    loadingEl.classList.add("fade-out");
+    setTimeout(() => {
+      if (loadingEl.parentNode) {
+        loadingEl.parentNode.removeChild(loadingEl);
+      }
+      navigate("homeSection");
+    }, 500);
+  };
+
+  const exitTimer = setTimeout(completeLanding, LOADING_DURATION);
+
+  loadingEl.addEventListener("click", () => {
+    clearTimeout(exitTimer);
+    triggerSound();
+    completeLanding();
+  });
+
+  const skipBtn = $("skipLandingBtn");
+  if (skipBtn) {
+    skipBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      clearTimeout(exitTimer);
+      triggerSound();
+      completeLanding();
+    });
+  }
+}
+
 /* ---------------- START APPLICATION ---------------- */
 
 async function startShopSphere() {
   loadCartFromStorage();
   wireEvents();
+  initLoadingScreen();
+  initParachuteScroll();
 
   await loadSession();
 

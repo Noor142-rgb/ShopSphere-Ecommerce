@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,23 +6,115 @@
   <title>ShopSphere | Curated Retail</title>
   <meta name="description" content="ShopSphere — Contemporary retail experience powered by Neo4j graph intelligence. Discover curated goods, home essentials, and modern apparel.">
   
-  <!-- Google Fonts: Playfair Display (Serif) & Inter (Sans) -->
+  <!-- Google Fonts: Quicksand, Inter & Playfair Display -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="images/shopsphere_logo.png">
   
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- ShopSphere Animated Landing / Loading Screen with Wink Sound -->
+  <div id="loadingScreen" class="loading-screen" aria-label="ShopSphere is loading" role="dialog" aria-modal="true">
+    <div class="loading-content">
+      <div class="loading-logo">
+        <svg class="brand-logo" viewBox="0 0 720 520" role="img" aria-label="ShopSphere">
+          <defs>
+            <linearGradient id="cartPink" x1="95" y1="65" x2="520" y2="320">
+              <stop offset="0" stop-color="#ff2f78" />
+              <stop offset="1" stop-color="#ef2670" />
+            </linearGradient>
+            <linearGradient id="basketPink" x1="220" y1="110" x2="525" y2="245">
+              <stop offset="0" stop-color="#f62e79" />
+              <stop offset="1" stop-color="#ed357c" />
+            </linearGradient>
+            <linearGradient id="softPink" x1="405" y1="110" x2="550" y2="240">
+              <stop offset="0" stop-color="#fa72a3" />
+              <stop offset="1" stop-color="#f98ab2" />
+            </linearGradient>
+          </defs>
+
+          <g class="cart-mark">
+            <path
+              d="M116 80h70c16 0 27 8 32 25l72 246c4 13 13 19 27 19h205"
+              fill="none"
+              stroke="url(#cartPink)"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="36"
+            />
+            <path
+              d="M213 129h312c13 0 21 12 16 24l-53 117c-4 9-12 14-22 14H258z"
+              fill="url(#basketPink)"
+            />
+            <path
+              d="M459 129h66c13 0 21 12 16 24l-53 117c-4 9-12 14-22 14h-76l53-140c3-9 8-15 16-15z"
+              fill="url(#softPink)"
+            />
+
+            <path
+              d="M572 88c19-4 23-8 27-27 4 19 8 23 27 27-19 4-23 8-27 27-4-19-8-23-27-27Z"
+              fill="#f32672"
+            />
+            <path
+              d="M548 145c10-2 13-5 15-15 2 10 5 13 15 15-10 2-13 5-15 15-2-10-5-13-15-15Z"
+              fill="#f32672"
+            />
+
+            <g class="face">
+              <circle cx="318" cy="418" r="29" fill="#3b1725" />
+              <circle cx="325" cy="408" r="8" fill="#fff" />
+              <circle cx="309" cy="407" r="3.5" fill="#fff" />
+
+              <g class="wink-eye" aria-hidden="true">
+                <circle class="wink-eye__open" cx="438" cy="418" r="27" fill="#3b1725" />
+                <circle class="wink-eye__shine" cx="445" cy="408" r="7" fill="#fff" />
+                <path
+                  class="wink-eye__closed"
+                  d="M410 424c14-17 31-17 49 0M411 424c13 1 27 5 40 13"
+                  fill="none"
+                  stroke="#3b1725"
+                  stroke-linecap="round"
+                  stroke-width="10"
+                />
+              </g>
+
+              <path
+                d="M347 463c17 17 38 17 55 0"
+                fill="none"
+                stroke="#f52d76"
+                stroke-linecap="round"
+                stroke-width="8"
+              />
+            </g>
+          </g>
+
+          <text
+            x="360"
+            y="512"
+            text-anchor="middle"
+            font-family="Arial Black, Arial, sans-serif"
+            font-size="80"
+            font-weight="900"
+            letter-spacing="-7"
+          >
+            <tspan fill="#26171c">Shop</tspan>
+            <tspan fill="#f32672">Sphere</tspan>
+          </text>
+        </svg>
+      </div>
+      <button type="button" class="skip-landing-btn" id="skipLandingBtn">Enter ShopSphere &rarr;</button>
+    </div>
+  </div>
+
   <!-- Header & Navigation -->
   <header class="site-header" id="siteHeader">
     <div class="header-container">
       <div class="brand-wrapper" id="brandLogo" role="button" tabindex="0" aria-label="ShopSphere Home">
-        <div class="brand-mark">S</div>
-        <div>
-          <span class="brand-name">ShopSphere</span>
-          <span class="brand-tagline">Curated Goods</span>
-        </div>
+        <img src="images/shopsphere_logo.png" alt="ShopSphere Logo" class="brand-logo-img">
       </div>
 
       <nav class="main-nav" id="mainNav" aria-label="Main Navigation">
@@ -142,6 +234,13 @@
 
     <!-- 2. PRODUCTS SECTION -->
     <section id="productsSection" class="hidden" aria-label="Product Catalog">
+      <!-- Floating Parachute Animation (Moves left-to-right from top-to-bottom on scroll) -->
+      <div class="catalog-parachute-track" aria-hidden="true">
+        <div id="parachuteWrapper" class="parachute-wrapper">
+          <img src="images/parachute.png" id="catalogParachute" class="catalog-parachute-img" alt="Floating Parachute">
+        </div>
+      </div>
+
       <div class="catalog-header">
         <div class="catalog-title-group">
           <h2>Product Collection</h2>
@@ -378,7 +477,7 @@
   <footer class="site-footer">
     <div class="footer-container">
       <div class="footer-brand">
-        <h3>ShopSphere</h3>
+        <img src="images/shopsphere_logo.png" alt="ShopSphere Logo" class="footer-brand-logo-img">
         <p>Curated retail experience with full graph relationships for products, categories, and customer orders. Designed with elegance and precision.</p>
       </div>
 

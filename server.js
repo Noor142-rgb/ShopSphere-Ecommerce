@@ -687,6 +687,30 @@ app.post("/api/orders", requireCustomer, async (req, res) => {
   }
 
   try {
+    const stockCheck = await query(
+      `UNWIND $items AS item
+       MATCH (p:Product)
+       WHERE toString(p.product_id) = item.productId
+       RETURN toString(p.product_id) AS productId,
+              coalesce(p.product_name, 'Product') AS name,
+              toInteger(coalesce(p.stock, 0)) AS stock,
+              item.quantity AS requested`,
+      { items: clean }
+    );
+
+    if (stockCheck.length !== clean.length) {
+      return res.status(400).json({
+        message: "One or more products in your cart could not be found."
+      });
+    }
+
+    const outOfStock = stockCheck.find(p => p.stock < p.requested);
+    if (outOfStock) {
+      return res.status(400).json({
+        message: `Insufficient inventory for "${outOfStock.name}". Available: ${outOfStock.stock}, requested: ${outOfStock.requested}.`
+      });
+    }
+
     const r = await write(
       `MATCH (c:Customer)
        WHERE toString(c.customer_id)=$customerId
@@ -716,6 +740,10 @@ app.post("/api/orders", requireCustomer, async (req, res) => {
        WITH o,lines
        UNWIND lines AS line
        WITH o,line,line.product AS p
+       SET p.stock = CASE
+         WHEN toInteger(coalesce(p.stock, 0)) - line.quantity < 0 THEN 0
+         ELSE toInteger(coalesce(p.stock, 0)) - line.quantity
+       END
        CREATE (o)-[:CONTAINS {
          quantity:line.quantity,
          unit_price:toFloat(p.price),
