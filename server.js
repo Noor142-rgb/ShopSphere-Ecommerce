@@ -616,11 +616,20 @@ app.get("/api/orders", requireAdmin, async (req, res) => {
   try {
     res.json(await query(
       `MATCH (c:Customer)-[:PLACED]->(o:Order)
+       OPTIONAL MATCH (o)-[r:CONTAINS]->(p:Product)
+       WITH o, c, collect({
+         productId: toString(p.product_id),
+         productName: coalesce(p.product_name, 'Product'),
+         quantity: coalesce(r.quantity, 1),
+         price: coalesce(r.unit_price, toFloat(p.price)),
+         subtotal: coalesce(r.subtotal, toFloat(p.price) * coalesce(r.quantity, 1))
+       }) AS rawItems
        RETURN toString(o.order_id) AS orderId,
               coalesce(c.name,'Customer') AS customer,
               toString(o.order_date) AS orderDate,
               toFloat(o.total_amount) AS totalAmount,
-              coalesce(o.status,'Unknown') AS status
+              coalesce(o.status,'Placed') AS status,
+              [it IN rawItems WHERE it.productId IS NOT NULL] AS items
        ORDER BY toInteger(o.order_id) DESC`
     ));
   } catch (e) {
@@ -633,11 +642,20 @@ app.get("/api/my/orders", requireCustomer, async (req, res) => {
     res.json(await query(
       `MATCH (c:Customer)-[:PLACED]->(o:Order)
        WHERE toString(c.customer_id)=$customerId
+       OPTIONAL MATCH (o)-[r:CONTAINS]->(p:Product)
+       WITH o, c, collect({
+         productId: toString(p.product_id),
+         productName: coalesce(p.product_name, 'Product'),
+         quantity: coalesce(r.quantity, 1),
+         price: coalesce(r.unit_price, toFloat(p.price)),
+         subtotal: coalesce(r.subtotal, toFloat(p.price) * coalesce(r.quantity, 1))
+       }) AS rawItems
        RETURN toString(o.order_id) AS orderId,
               coalesce(c.name,'Customer') AS customer,
               toString(o.order_date) AS orderDate,
               toFloat(o.total_amount) AS totalAmount,
-              coalesce(o.status,'Unknown') AS status
+              coalesce(o.status,'Placed') AS status,
+              [it IN rawItems WHERE it.productId IS NOT NULL] AS items
        ORDER BY toInteger(o.order_id) DESC`,
       { customerId: req.session.user.customerId }
     ));
