@@ -248,9 +248,6 @@ function navigate(id) {
   $("mobileMenuToggle")?.setAttribute("aria-expanded", "false");
 
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (typeof window.updateParachutePosition === "function") {
-    window.updateParachutePosition(0);
-  }
 }
 
 function updateInterface() {
@@ -1391,66 +1388,6 @@ function wireEvents() {
   setupHeaderInteractivity();
 }
 
-/* ---------------- CATALOG PARACHUTE SCROLL ANIMATION ---------------- */
-
-function initParachuteScroll() {
-  const wrapper = $("parachuteWrapper");
-  if (!wrapper) return;
-
-  let ticking = false;
-
-  function updatePosition() {
-    const section = $("productsSection");
-    if (!section || section.classList.contains("hidden")) return;
-
-    const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
-
-    // Vertical: moves smoothly from top (0px) to bottom
-    const sectionHeight = section.scrollHeight || section.offsetHeight;
-    const wrapperHeight = wrapper.offsetHeight || 220;
-    const maxMoveY = Math.max(0, sectionHeight - wrapperHeight - 40);
-    const moveY = progress * maxMoveY;
-
-    // Horizontal: moves smoothly from left (0px) to right across the page
-    const trackWidth = section.clientWidth || window.innerWidth;
-    const wrapperWidth = wrapper.offsetWidth || 180;
-    const maxMoveX = Math.max(0, trackWidth - wrapperWidth - 60);
-    const moveX = progress * maxMoveX;
-
-    wrapper.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
-    ticking = false;
-  }
-
-  window.addEventListener("scroll", () => {
-    if (!ticking) {
-      window.requestAnimationFrame(updatePosition);
-      ticking = true;
-    }
-  }, { passive: true });
-
-  window.updateParachutePosition = (y = 0) => {
-    const section = $("productsSection");
-    if (!section) return;
-    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const progress = Math.min(1, Math.max(0, y / maxScroll));
-    const sectionHeight = section.scrollHeight || section.offsetHeight;
-    const wrapperHeight = wrapper.offsetHeight || 220;
-    const maxMoveY = Math.max(0, sectionHeight - wrapperHeight - 40);
-    const moveY = progress * maxMoveY;
-
-    const trackWidth = section.clientWidth || window.innerWidth;
-    const wrapperWidth = wrapper.offsetWidth || 180;
-    const maxMoveX = Math.max(0, trackWidth - wrapperWidth - 60);
-    const moveX = progress * maxMoveX;
-
-    wrapper.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
-  };
-
-  updatePosition();
-}
-
 /* ---------------- SHOPSPHERE LANDING WINK SOUND & ANIMATION ---------------- */
 
 const LOADING_DURATION = 5500;
@@ -1589,7 +1526,6 @@ async function startShopSphere() {
   loadCartFromStorage();
   wireEvents();
   initLoadingScreen();
-  initParachuteScroll();
 
   await loadSession();
 

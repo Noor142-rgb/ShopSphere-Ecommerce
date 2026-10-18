@@ -648,56 +648,6 @@ main {
   overflow: visible;
 }
 
-.catalog-parachute-track {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: visible;
-  z-index: 12;
-}
-
-
-.parachute-wrapper {
-  position: absolute;
-  top: 15px;
-  left: 20px;
-  width: clamp(140px, 16vw, 220px);
-  pointer-events: none;
-  will-change: transform;
-  z-index: 12;
-  transition: transform 0.08s cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.catalog-parachute-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  pointer-events: none;
-  filter: drop-shadow(0 16px 28px rgba(114, 205, 247, 0.35));
-  animation: parachuteSway 4s ease-in-out infinite;
-  transform-origin: 50% 10%;
-}
-
-@keyframes parachuteSway {
-  0%, 100% {
-    transform: rotate(-3deg) translateY(0);
-  }
-  50% {
-    transform: rotate(3deg) translateY(-8px);
-  }
-}
-
-@media (max-width: 768px) {
-  .parachute-wrapper {
-    width: clamp(100px, 22vw, 150px);
-    left: 10px;
-    top: 10px;
-  }
-}
-
 .catalog-header {
   display: flex;
   justify-content: space-between;
