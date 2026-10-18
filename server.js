@@ -92,12 +92,14 @@ function fail(res, e, msg) {
   res.status(500).json({ message: msg });
 }
 
+const isDev = process.env.NODE_ENV !== "production";
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
+  windowMs: 60 * 1000, // 1 minute window
+  limit: isDev ? 1000 : (parseInt(process.env.RATE_LIMIT_AUTH_MAX, 10) || 60),
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many attempts. Please try again later." }
+  skipSuccessfulRequests: true,
+  message: { message: "Too many attempts. Please try again in a moment." }
 });
 
 function requireCustomer(req, res, next) {
