@@ -1620,12 +1620,12 @@ textarea.form-control {
 .wink-eye__shine {
   transform-box: fill-box;
   transform-origin: center;
-  animation: eye-close 440ms 1.75s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: eye-close 440ms 3.0s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .wink-eye__closed {
   opacity: 0;
-  animation: wink-line 440ms 1.75s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: wink-line 440ms 3.0s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 @keyframes logo-arrival {

@@ -1453,80 +1453,21 @@ function initParachuteScroll() {
 
 /* ---------------- SHOPSPHERE LANDING WINK SOUND & ANIMATION ---------------- */
 
-const LOADING_DURATION = 4600;
-const WINK_AT = 1810;
+const LOADING_DURATION = 5000;
+const WINK_AT = 3000;
 
 function playWinkSound() {
-  const AudioContextClass =
-    window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return;
-
   try {
-    const context = new AudioContextClass();
-    if (context.state === 'suspended') {
-      context.resume();
+    const audio = new Audio("freesound_community-cartoon_wink_magic_sparkle-6896.mp3");
+    audio.volume = 1.0;
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => {
+        console.warn("Audio autoplay blocked by browser:", err);
+      });
     }
-    const firstTone = context.createOscillator();
-    const secondTone = context.createOscillator();
-    const sparkleTone = context.createOscillator();
-
-    const firstGain = context.createGain();
-    const secondGain = context.createGain();
-    const sparkleGain = context.createGain();
-    const masterGain = context.createGain();
-    const now = context.currentTime;
-
-    // Loud, clear, non-clipping master volume
-    masterGain.gain.setValueAtTime(0.95, now);
-
-    // Warm ascending base chime (Loud & rich)
-    firstTone.type = 'sine';
-    firstTone.frequency.setValueAtTime(740, now);
-    firstTone.frequency.exponentialRampToValueAtTime(1200, now + 0.095);
-    firstGain.gain.setValueAtTime(0.0001, now);
-    firstGain.gain.exponentialRampToValueAtTime(0.75, now + 0.012);
-    firstGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
-
-    // Bright ascending sparkle tone
-    secondTone.type = 'sine';
-    secondTone.frequency.setValueAtTime(1280, now + 0.045);
-    secondTone.frequency.exponentialRampToValueAtTime(1960, now + 0.18);
-    secondGain.gain.setValueAtTime(0.0001, now);
-    secondGain.gain.setValueAtTime(0.0001, now + 0.045);
-    secondGain.gain.exponentialRampToValueAtTime(0.70, now + 0.075);
-    secondGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
-
-    // High crystalline twinkle harmonic (Disney/Apple chime quality)
-    sparkleTone.type = 'triangle';
-    sparkleTone.frequency.setValueAtTime(2240, now + 0.07);
-    sparkleTone.frequency.exponentialRampToValueAtTime(3200, now + 0.22);
-    sparkleGain.gain.setValueAtTime(0.0001, now);
-    sparkleGain.gain.setValueAtTime(0.0001, now + 0.07);
-    sparkleGain.gain.exponentialRampToValueAtTime(0.48, now + 0.10);
-    sparkleGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
-
-    firstTone.connect(firstGain);
-    secondTone.connect(secondGain);
-    sparkleTone.connect(sparkleGain);
-
-    firstGain.connect(masterGain);
-    secondGain.connect(masterGain);
-    sparkleGain.connect(masterGain);
-    masterGain.connect(context.destination);
-
-    firstTone.start(now);
-    secondTone.start(now + 0.045);
-    sparkleTone.start(now + 0.07);
-
-    firstTone.stop(now + 0.17);
-    secondTone.stop(now + 0.29);
-    sparkleTone.stop(now + 0.33);
-
-    sparkleTone.addEventListener('ended', () => {
-      try { context.close(); } catch (e) {}
-    }, { once: true });
   } catch (err) {
-    console.warn("Audio playback not permitted:", err);
+    console.warn("Failed to play wink sound:", err);
   }
 }
 
@@ -1544,6 +1485,7 @@ function initLoadingScreen() {
     }
   };
 
+  // Wink sound triggers strictly at 3 seconds (when the eye winks)
   const soundTimer = setTimeout(triggerSound, WINK_AT);
 
   const completeLanding = () => {
@@ -1559,9 +1501,10 @@ function initLoadingScreen() {
 
   const exitTimer = setTimeout(completeLanding, LOADING_DURATION);
 
+  // Clicking allows entering early, but does NOT play sound
   loadingEl.addEventListener("click", () => {
     clearTimeout(exitTimer);
-    triggerSound();
+    clearTimeout(soundTimer);
     completeLanding();
   });
 
@@ -1570,7 +1513,7 @@ function initLoadingScreen() {
     skipBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       clearTimeout(exitTimer);
-      triggerSound();
+      clearTimeout(soundTimer);
       completeLanding();
     });
   }
